@@ -16,7 +16,7 @@ plugins {
 
 println """
 *******************************************
- You are building SKCraft Launcher!
+ You are building SKCraft Launcher! 
 
  Output files will be in [subproject]/build/libs
 *******************************************
@@ -27,14 +27,13 @@ subprojects {
     apply plugin: 'maven'
 
     group = 'com.skcraft'
-    version = '2.0-All'
+    version = '2.5-All'
 
     sourceCompatibility = 1.6
     targetCompatibility = 1.6
 
     repositories {
         mavenCentral()
-        maven { url "http://repo.maven.apache.org/maven2" }
     }
 
     if (JavaVersion.current().isJava8Compatible()) {

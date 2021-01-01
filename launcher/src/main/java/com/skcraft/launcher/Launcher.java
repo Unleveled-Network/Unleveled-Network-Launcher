@@ -68,6 +68,7 @@ public final class Launcher {
     @Getter private final LaunchSupervisor launchSupervisor = new LaunchSupervisor(this);
     @Getter private final UpdateManager updateManager = new UpdateManager(this);
     @Getter private final InstanceTasks instanceTasks = new InstanceTasks(this);
+    private final Environment env = Environment.getInstance();
 
     /**
      * Create a new launcher instance with the given base directory.
@@ -90,7 +91,7 @@ public final class Launcher {
     public Launcher(@NonNull File baseDir, @NonNull File configDir) throws IOException {
         SharedLocale.loadBundle("com.skcraft.launcher.lang.Launcher", Locale.getDefault());
 
-        this.baseDir = baseDir;
+        this.baseDir = baseDir.getAbsoluteFile();
         this.properties = LauncherUtils.loadProperties(Launcher.class, "launcher.properties", "com.skcraft.launcher.propertiesFile");
         this.instances = new InstanceList(this);
         this.assets = new AssetsRoot(new File(baseDir, "assets"));
@@ -281,7 +282,6 @@ public final class Launcher {
      * @return File pointing to the library on disk.
      */
     public File getLibraryFile(Library library) {
-        Environment env = Environment.getInstance();
         return new File(getLibrariesDir(), library.getPath(env));
     }
 
@@ -413,7 +413,7 @@ public final class Launcher {
         if (dir != null) {
             log.info("Using given base directory " + dir.getAbsolutePath());
         } else {
-            dir = new File(".");
+            dir = new File("");
             log.info("Using current directory " + dir.getAbsolutePath());
         }
 
