@@ -1,4 +1,5 @@
 [![](https://img.shields.io/discord/743859615724470273?label=Discord&logo=Discord&style=plastic)](https://discord.gg/jYuCRY6)
+![Java CI with Gradle](https://github.com/Unleveled-Network/Unleveled-Network-Launcher/workflows/Java%20CI%20with%20Gradle/badge.svg)
 
 ### 1.13+ notice
 
