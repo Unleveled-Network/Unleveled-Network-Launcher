@@ -8,7 +8,7 @@ mainClassName = "com.skcraft.launcher.Bootstrap"
 
 dependencies {
     compile 'com.googlecode.json-simple:json-simple:1.1.1'
-    compile 'javax.xml.bind:jaxb-api:2.3.0'
+    compile 'javax.xml.bind:jaxb-api:2.3.1'
 }
 
 processResources {
