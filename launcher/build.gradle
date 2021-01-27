@@ -8,7 +8,7 @@ mainClassName = "com.skcraft.launcher.Launcher"
 
 dependencies {
     compile 'javax.xml.bind:jaxb-api:2.2.4'
-    compile 'com.fasterxml.jackson.core:jackson-databind:2.3.0'
+    compile 'com.fasterxml.jackson.core:jackson-databind:2.12.1'
     compile 'commons-lang:commons-lang:2.6'
     compile 'commons-io:commons-io:1.2'
     compile 'com.google.guava:guava:15.0'
