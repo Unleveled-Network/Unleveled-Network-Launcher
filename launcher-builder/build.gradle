@@ -7,7 +7,7 @@ mainClassName = "com.skcraft.launcher.builder.PackageBuilder"
 
 dependencies {
     compile project(':launcher')
-    compile 'org.tukaani:xz:1.0'
+    compile 'org.tukaani:xz:1.8'
     compile 'org.apache.commons:commons-compress:1.9'
 }
 
