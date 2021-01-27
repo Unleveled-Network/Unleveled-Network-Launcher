@@ -26,7 +26,6 @@ import com.skcraft.launcher.model.minecraft.ReleaseList;
 import com.skcraft.launcher.model.minecraft.Version;
 import com.skcraft.launcher.model.minecraft.VersionManifest;
 import com.skcraft.launcher.model.modpack.Manifest;
-import com.skcraft.launcher.util.Environment;
 import com.skcraft.launcher.util.HttpRequest;
 import com.skcraft.launcher.util.SimpleLogFormatter;
 import lombok.Getter;
@@ -105,11 +104,15 @@ public class PackageBuilder {
     public void scan(File dir) throws IOException {
         logSection("Scanning for .info.json files...");
 
-        FileInfoScanner scanner = new FileInfoScanner(mapper);
-        scanner.walk(dir);
-        for (FeaturePattern pattern : scanner.getPatterns()) {
+        FileInfoScanner infoScanner = new FileInfoScanner(mapper);
+        infoScanner.walk(dir);
+        for (FeaturePattern pattern : infoScanner.getPatterns()) {
             applicator.register(pattern);
         }
+
+        logSection("Scanning for .url.txt files...");
+        FileUrlScanner urlScanner = new FileUrlScanner();
+        urlScanner.walk(dir);
     }
 
     public void addFiles(File dir, File destDir) throws IOException {
@@ -175,55 +178,65 @@ public class PackageBuilder {
         if (processor != null) {
             LoaderResult result = processor.process(file, manifest, mapper, baseDir);
 
+            if (result == null) {
+                log.warning("Loader " + file.getName() + " failed to process.");
+                return;
+            }
+
             loaderLibraries.addAll(result.getLoaderLibraries());
             installerLibraries.addAll(result.getProcessorLibraries());
             jarMavens.addAll(result.getJarMavens());
+        } else {
+            log.warning("Loader " + file.getName() + " was skipped due to missing metadata. " +
+                    "Is it really a loader JAR?");
         }
     }
 
     public void downloadLibraries(File librariesDir) throws IOException, InterruptedException {
         logSection("Downloading libraries...");
 
-        // TODO: Download libraries for different environments -- As of writing, this is not an issue
-        Environment env = Environment.getInstance();
-
         for (Library library : Iterables.concat(loaderLibraries, installerLibraries)) {
-            Library.Artifact artifact = library.getArtifact(env);
-            File outputPath = new File(librariesDir, artifact.getPath());
+            library.ensureDownloadsExist();
 
-            if (!outputPath.exists()) {
-                Files.createParentDirs(outputPath);
-                boolean found = false;
+            for (Library.Artifact artifact : library.getDownloads().getAllArtifacts()) {
+                File outputPath = new File(librariesDir, artifact.getPath());
 
-                // Try just the URL, it might be a full URL to the file
-                if (!artifact.getUrl().isEmpty()) {
-                    found = tryDownloadLibrary(library, artifact, artifact.getUrl(), outputPath);
-                }
+                if (!outputPath.exists()) {
+                    Files.createParentDirs(outputPath);
+                    boolean found = false;
 
-                // Look inside the loader JARs
-                if (!found) {
-                    for (URL base : jarMavens) {
-                        found = tryFetchLibrary(library, new URL(base, artifact.getPath()), outputPath);
-                        if (found) break;
+                    // Try just the URL, it might be a full URL to the file
+                    if (!artifact.getUrl().isEmpty()) {
+                        found = tryDownloadLibrary(library, artifact, artifact.getUrl(), outputPath);
                     }
-                }
 
-                // Assume artifact URL is a maven repository URL and try that
-                if (!found) {
-                    URL url = LauncherUtils.concat(url(artifact.getUrl()), artifact.getPath());
-                    found = tryDownloadLibrary(library, artifact, url.toString(), outputPath);
-                }
-
-                // Try each repository if not found yet
-                if (!found) {
-                    for (String baseUrl : mavenRepos) {
-                        found = tryDownloadLibrary(library, artifact, baseUrl + artifact.getPath(), outputPath);
-                        if (found) break;
+                    // Look inside the loader JARs
+                    if (!found) {
+                        for (URL base : jarMavens) {
+                            found = tryFetchLibrary(library, new URL(base, artifact.getPath()), outputPath);
+                            if (found) break;
+                        }
                     }
-                }
 
-                if (!found) {
-                    log.warning("!! Failed to download the library " + library.getName() + " -- this means your copy of the libraries will lack this file");
+                    // Assume artifact URL is a maven repository URL and try that
+                    if (!found) {
+                        URL url = LauncherUtils.concat(url(artifact.getUrl()), artifact.getPath());
+                        found = tryDownloadLibrary(library, artifact, url.toString(), outputPath);
+                    }
+
+                    // Try each repository if not found yet
+                    if (!found) {
+                        for (String baseUrl : mavenRepos) {
+                            found = tryDownloadLibrary(library, artifact, baseUrl + artifact.getPath(),
+                                    outputPath);
+                            if (found) break;
+                        }
+                    }
+
+                    if (!found) {
+                        log.warning("!! Failed to download the library " + library.getName() +
+                                " -- this means your copy of the libraries will lack this file");
+                    }
                 }
             }
         }

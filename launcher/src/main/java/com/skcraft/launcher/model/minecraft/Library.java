@@ -6,9 +6,11 @@
 
 package com.skcraft.launcher.model.minecraft;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
+import com.google.common.collect.Lists;
 import com.skcraft.launcher.util.Environment;
 import lombok.Data;
 
@@ -65,9 +67,17 @@ public class Library {
                     return null;
             }
 
-            return nativeString.replace("${arch}", environment.getArchBits());
-        } else {
-            return null;
+            if (nativeString != null) {
+                return nativeString.replace("${arch}", environment.getArchBits());
+            }
+        }
+
+        return null;
+    }
+
+    public void ensureDownloadsExist() {
+        if (getDownloads() == null) {
+            setServerreq(true); // BACKWARDS COMPATIBILITY
         }
     }
 
@@ -81,9 +91,7 @@ public class Library {
      * the library name and using that.
      */
     public Artifact getArtifact(Environment environment) {
-        if (getDownloads() == null) {
-            setServerreq(true); // BACKWARDS COMPATIBILITY
-        }
+        ensureDownloadsExist();
 
         String nativeString = getNativeString(environment);
 
@@ -140,6 +148,7 @@ public class Library {
         private String path;
         private String url;
         private String sha1;
+        private int size;
     }
 
     @Data
@@ -147,6 +156,19 @@ public class Library {
     public static class Downloads {
         private Artifact artifact;
         private Map<String, Artifact> classifiers;
+
+        @JsonIgnore
+        public List<Artifact> getAllArtifacts() {
+            List<Artifact> artifacts = Lists.newArrayList();
+
+            if (artifact != null)
+                artifacts.add(artifact);
+
+            if (classifiers != null)
+                artifacts.addAll(classifiers.values());
+
+            return artifacts;
+        }
     }
 
     /**
