@@ -1,0 +1,26 @@
+version: 2
+updates:
+- package-ecosystem: gradle
+  directory: "/"
+  schedule:
+    interval: daily
+    timezone: America/Chicago
+  open-pull-requests-limit: 99
+  ignore:
+  - dependency-name: com.fasterxml.jackson.core:jackson-databind
+    versions:
+    - 2.12.1
+    - 2.12.2
+  - dependency-name: org.eclipse.jetty:jetty-server
+    versions:
+    - 11.0.0
+    - 11.0.1
+  - dependency-name: com.github.johnrengelman.shadow
+    versions:
+    - 6.1.0
+  - dependency-name: com.beust:jcommander
+    versions:
+    - "1.78"
+  - dependency-name: org.tukaani:xz
+    versions:
+    - "1.8"
